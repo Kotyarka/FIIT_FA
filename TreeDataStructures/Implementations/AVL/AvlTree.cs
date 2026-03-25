@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Reflection.Metadata;
 using TreeDataStructures.Core;
+using TreeDataStructures.Implementations.Treap;
 
 namespace TreeDataStructures.Implementations.AVL;
 
@@ -12,17 +13,45 @@ public class AvlTree<TKey, TValue> : BinarySearchTreeBase<TKey, TValue, AvlNode<
     
     protected override void OnNodeAdded(AvlNode<TKey, TValue> newNode)
     {
-        addParentHeight(newNode);
+        AvlNode<TKey, TValue> node = newNode.Parent;
+        setHeight(node);
+        int balance = getBalance(node);
+        if (balance > 1)
+        {
+            if (getBalance(node.Right) < 0)
+            {
+                RotateBigLeft(node);
+            } else
+            {
+                RotateLeft(node);
+            }
+        } else if (balance < 1)
+        {
+            if (getBalance(node.Left) > 0)
+            {
+                RotateBigRight(node);
+            } else
+            {
+                RotateRight(node);
+            }
+        }
     }
 
-    protected void addParentHeight(AvlNode<TKey, TValue> newNode)
+    protected int getBalance(AvlNode<TKey, TValue> node)
     {
-        AvlNode<TKey, TValue> node = newNode;
-        while (node.Parent != null)
+        if (node == null)
         {
-            node.Parent.Height = MaxHeight(node.Parent.Left, node.Parent.Right) + 1;
-            node = node.Parent;
+            return 0;
         }
+        return node.Left.Height - node.Right.Height;
+    }
+    protected void setHeight(AvlNode<TKey, TValue> node)
+    {
+        if (node != null)
+        {
+            node.Height = MaxHeight(node.Left, node.Right) + 1;
+        }
+
     }
 
     protected int MaxHeight(AvlNode<TKey, TValue> first, AvlNode<TKey, TValue> second)
