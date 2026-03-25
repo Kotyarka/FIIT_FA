@@ -7,17 +7,17 @@ public class BinarySearchTree<TKey, TValue> : BinarySearchTreeBase<TKey, TValue,
 {
     protected override BstNode<TKey, TValue> CreateNode(TKey key, TValue value)
     {
-        throw new NotImplementedException();
+        return new BstNode<TKey, TValue>(key, value);
     }
     
     protected override void OnNodeAdded(BstNode<TKey, TValue> newNode)
     {
-        throw new NotImplementedException();
+        Console.WriteLine($"Added one node with value {newNode.Value} and key {newNode.Key}");
     }
     
     protected override void OnNodeRemoved(BstNode<TKey, TValue>? parent, BstNode<TKey, TValue>? child)
     {
-        throw new NotImplementedException();
+        Console.WriteLine($"Removed one node");
     }
     
 }
