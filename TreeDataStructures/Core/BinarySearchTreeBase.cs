@@ -193,7 +193,7 @@ protected TNode? FindNode(TKey key)
 
 protected void RotateLeft(TNode x)
 {
-    if (x == null || x.Right == null)
+    if (x.Right == null)
         throw new InvalidOperationException("Cannot rotate left: right child is null");
 
     TNode y = x.Right;
@@ -216,7 +216,7 @@ protected void RotateLeft(TNode x)
 
 protected void RotateRight(TNode y)
 {
-    if (y == null || y.Left == null)
+    if (y.Left == null)
         throw new InvalidOperationException("Cannot rotate right: left child is null");
 
     TNode x = y.Left;
