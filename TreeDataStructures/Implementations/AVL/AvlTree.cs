@@ -26,9 +26,9 @@ private AvlNode<TKey, TValue>? doBalance(AvlNode<TKey, TValue> node)
         } // безусловно, было бы здорово использовать сразу двойные повороты, но мне лень :( 
         if (balance < -1)
         { 
-            if (getBalance(node.Right) < 0)
+            if (getBalance(node.Right) > 0)
             {
-                node.Left = AVLRightRotate(node.Right!);
+                node.Right = AVLRightRotate(node.Right!);
             }
             return AVLLeftRotate(node);      
         }
@@ -39,20 +39,18 @@ protected override void OnNodeAdded(AvlNode<TKey, TValue> newNode)
     AvlNode<TKey, TValue>? node = newNode.Parent;
     while (node != null)
     {
-       AvlNode<TKey, TValue> insertNode = doBalance(node);
-       if (node.Parent == null)
-            {
-                Root = insertNode;
-            }
-        else if (node.Parent != null && node.Parent.Left == node)
-            {
-                node.Parent.Left = insertNode;
-            }
+        var parent = node.Parent;
+        var isLeft = parent?.Left == node; 
+        AvlNode<TKey, TValue> balancedNode = doBalance(node);
+        
+        if (parent == null)
+            Root = balancedNode;
+        else if (isLeft)
+            parent.Left = balancedNode;
         else
-            {
-                node.Parent.Right = insertNode;
-            }
-        node = node.Parent;
+            parent.Right = balancedNode;
+        
+        node = parent;
     }
 }
 
@@ -80,25 +78,23 @@ protected int MaxHeight(AvlNode<TKey, TValue> first, AvlNode<TKey, TValue> secon
     return Math.Max(firstHeight, secondHeight);
 }
     
-protected override void OnNodeRemoved(AvlNode<TKey, TValue>? parent, AvlNode<TKey, TValue>? child)
+protected override void OnNodeRemoved(AvlNode<TKey, TValue>? father, AvlNode<TKey, TValue>? child)
 {
-    AvlNode<TKey, TValue>? node = parent ?? child;
+    AvlNode<TKey, TValue>? node = father ?? child;
     while (node != null)
     {
-       AvlNode<TKey, TValue> insertNode = doBalance(node);
-       if (node.Parent == null)
-            {
-                Root = insertNode;
-            }
-        else if (node.Parent != null && node.Parent.Left == node)
-            {
-                node.Parent.Left = insertNode;
-            }
+        var parent = node.Parent;
+        var isLeft = parent?.Left == node;
+        AvlNode<TKey, TValue> balancedNode = doBalance(node);
+        
+        if (parent == null)
+            Root = balancedNode;
+        else if (isLeft)
+            parent.Left = balancedNode;
         else
-            {
-                node.Parent.Right = insertNode;
-            }
-        node = node.Parent;
+            parent.Right = balancedNode;
+        
+        node = parent;
     }
 }
 

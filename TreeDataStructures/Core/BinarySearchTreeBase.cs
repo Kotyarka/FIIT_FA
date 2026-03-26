@@ -90,40 +90,38 @@ public abstract class BinarySearchTreeBase<TKey, TValue, TNode>(IComparer<TKey>?
         return true;
     }
 
-    protected virtual void RemoveNode(TNode node)
+    protected virtual void RemoveNode(TNode? node)
     {
-        if (node.Left == null)
+        ArgumentNullException.ThrowIfNull(node); 
+        if (node.Left == null && node.Right == null)
         {
-            Transplant(node, node.Right);
-            OnNodeRemoved(node.Parent, node.Right);
-        }
-        else if (node.Right == null)
+            Transplant(node, null);
+        } else if (node.Left == null)
+        {
+           Transplant(node, node.Right);
+        } else if (node.Right == null)
         {
             Transplant(node, node.Left);
-            OnNodeRemoved(node.Parent, node.Left);
-        }
-        else
+        } else
         {
-            TNode minRight = FindMin(node.Right);
-
-            if (minRight.Parent != node)
+            TNode temp = node.Left;
+            while (temp.Right != null)
             {
-                Transplant(minRight, minRight.Right);
-                minRight.Right = node.Right;
-                minRight.Right.Parent = minRight;
+                temp = temp.Right;
             }
 
-            Transplant(node, minRight);
-            minRight.Left = node.Left;
-            minRight.Left.Parent = minRight;
-
-            OnNodeRemoved(minRight.Parent, minRight);
+            if (temp.Parent != node)
+            {
+                Transplant(temp, temp.Left);
+                temp.Left = node.Left;
+                temp.Left.Parent = temp;
+            }
+            Transplant(node, temp);
+            temp.Right = node.Right;
+            temp.Right.Parent = temp;
         }
-
-        node.Left = null;
-        node.Right = null;
-        node.Parent = null;
     }
+
 
 public virtual bool ContainsKey(TKey key) => FindNode(key) != null;
 
