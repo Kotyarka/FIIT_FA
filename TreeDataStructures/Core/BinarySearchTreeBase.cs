@@ -610,7 +610,46 @@ private enum TraversalStrategy { InOrder, PreOrder, PostOrder, InOrderReverse, P
 
 public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
 {
-    throw new NotImplementedException();
+    return new TreeKeyValueEnumerator(Root);
+}
+
+private struct TreeKeyValueEnumerator : IEnumerator<KeyValuePair<TKey, TValue>>
+{
+    private TreeIterator _iterator;
+    private KeyValuePair<TKey, TValue> _current;
+
+    public TreeKeyValueEnumerator(TNode? root)
+    {
+        _iterator = new TreeIterator(root, TraversalStrategy.InOrder);
+        _current = default;
+    }
+
+    public KeyValuePair<TKey, TValue> Current => _current;
+    object IEnumerator.Current => Current;
+
+    public bool MoveNext()
+    {
+        if (_iterator.MoveNext())
+        {
+            var entry = _iterator.Current;
+            _current = new KeyValuePair<TKey, TValue>(entry.Key, entry.Value);
+            return true;
+        }
+        
+        _current = default;
+        return false;
+    }
+
+    public void Reset()
+    {
+        _iterator.Reset();
+        _current = default;
+    }
+
+    public void Dispose()
+    {
+        _iterator.Dispose();
+    }
 }
 
 IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
