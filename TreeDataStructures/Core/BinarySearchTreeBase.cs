@@ -39,7 +39,7 @@ public abstract class BinarySearchTreeBase<TKey, TValue, TNode>(IComparer<TKey>?
 
     public virtual void Add(TKey key, TValue value)
     {
-        TNode newNode = CreateNode(key, value);
+        TNode? newNode = CreateNode(key, value);
 
         if (Root == null)
         {
@@ -49,8 +49,8 @@ public abstract class BinarySearchTreeBase<TKey, TValue, TNode>(IComparer<TKey>?
             return;
         }
 
-        TNode current = Root;
-        TNode parent = null;
+        TNode? current = Root;
+        TNode? parent = null;
         int isBigger = 0;
 
         while (current != null)
@@ -70,9 +70,9 @@ public abstract class BinarySearchTreeBase<TKey, TValue, TNode>(IComparer<TKey>?
         newNode.Parent = parent;
 
         if (isBigger < 0)
-            parent.Left = newNode;
+            parent?.Left = newNode;
         else
-            parent.Right = newNode;
+            parent?.Right = newNode;
 
         Count++;
         OnNodeAdded(newNode);
@@ -291,7 +291,7 @@ protected void RotateDoubleRight(TNode y)
     }
     #endregion
 
-    public IEnumerable<TreeEntry<TKey, TValue>> InOrder() => new TreeIterator(Root, TraversalStrategy.InOrder);
+public IEnumerable<TreeEntry<TKey, TValue>> InOrder() => new TreeIterator(Root, TraversalStrategy.InOrder);
 public IEnumerable<TreeEntry<TKey, TValue>> PreOrder() => new TreeIterator(Root, TraversalStrategy.PreOrder);
 public IEnumerable<TreeEntry<TKey, TValue>> PostOrder() => new TreeIterator(Root, TraversalStrategy.PostOrder);
 public IEnumerable<TreeEntry<TKey, TValue>> InOrderReverse() => new TreeIterator(Root, TraversalStrategy.InOrderReverse);
@@ -462,7 +462,7 @@ private struct TreeIterator :
                 return false;
             }
 
-            if (_outputStack.Count > 0)
+            if (_outputStack?.Count > 0)
             {
                 _current = _outputStack.Pop();
                 return true;
@@ -579,7 +579,7 @@ private struct TreeIterator :
                 return false;
             }
 
-            if (_outputStack.Count > 0)
+            if (_outputStack?.Count > 0)
             {
                 _current = _outputStack.Pop();
                 return true;
