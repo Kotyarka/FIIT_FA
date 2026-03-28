@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using System.Security.AccessControl;
 using TreeDataStructures.Core;
 
 namespace TreeDataStructures.Implementations.Treap;
@@ -13,9 +14,24 @@ public class Treap<TKey, TValue> : BinarySearchTreeBase<TKey, TValue, TreapNode<
     /// </summary>
     protected virtual (TreapNode<TKey, TValue>? Left, TreapNode<TKey, TValue>? Right) Split(TreapNode<TKey, TValue>? root, TKey key)
     {
-        throw new NotImplementedException("Implement Split operation");
+        if (root == null)
+        {
+            return (null, null);
+        }
+        
+        if (Comparer.Compare(key, root.Key) < 0)
+        {
+            (TreapNode<TKey, TValue>? left, TreapNode<TKey, TValue>? right) = Split(root.Left, key);
+            root.Left = right;
+            return (left, root);
+        }
+        else
+        {
+            (TreapNode<TKey, TValue>? left, TreapNode<TKey, TValue>? right) = Split(root.Right, key);
+            root.Right = left;
+            return (root, right);
+        }
     }
-
     /// <summary>
     /// Сливает два дерева в одно.
     /// Важное условие: все ключи в <paramref name="left"/> должны быть меньше ключей в <paramref name="right"/>.
