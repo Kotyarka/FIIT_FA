@@ -62,6 +62,12 @@ public class Treap<TKey, TValue> : BinarySearchTreeBase<TKey, TValue, TreapNode<
 
     public override void Add(TKey key, TValue value)
     {
+        TreapNode<TKey, TValue>? ifKeyExist = FindNode(key);
+        if (ifKeyExist != null)
+        {
+            ifKeyExist.Value = value;
+            return;
+        }
         TreapNode<TKey, TValue>? newNode = CreateNode(key, value);
         (TreapNode<TKey, TValue>? splittedTree1, TreapNode<TKey, TValue>? splittedTree2) = Split(Root, key);
         splittedTree1 =  Merge(splittedTree1, newNode);
