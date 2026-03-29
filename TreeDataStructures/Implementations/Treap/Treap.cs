@@ -62,26 +62,42 @@ public class Treap<TKey, TValue> : BinarySearchTreeBase<TKey, TValue, TreapNode<
 
     public override void Add(TKey key, TValue value)
     {
-        throw new NotImplementedException("Implement Add using Split and Merge");
+        TreapNode<TKey, TValue>? newNode = CreateNode(key, value);
+        (TreapNode<TKey, TValue>? splittedTree1, TreapNode<TKey, TValue>? splittedTree2) = Split(Root, key);
+        splittedTree1 =  Merge(splittedTree1, newNode);
+        Root = Merge(splittedTree1, splittedTree2);
+        Count++;
     }
 
     public override bool Remove(TKey key)
     {
-        throw new NotImplementedException("Implement Remove using Split and Merge");
+        (TreapNode<TKey, TValue>? splittedTree1, TreapNode<TKey, TValue>? splittedTree2) = Split(Root, key);
+        if (splittedTree2 == null)
+        {
+            return false;
+        }
+        TreapNode<TKey, TValue> node = splittedTree2;
+        while (node.Left != null)
+        {
+            node = node.Left;
+        }
+       RemoveNode(node);
+       Count--; 
+       return true;
     }
 
     protected override TreapNode<TKey, TValue> CreateNode(TKey key, TValue value)
     {
-        throw new NotImplementedException();
+        return new TreapNode<TKey, TValue>(key, value);
     }
     protected override void OnNodeAdded(TreapNode<TKey, TValue> newNode)
     {
-        throw new NotImplementedException();
+        Console.WriteLine($"Added one node with value {newNode.Value} and key {newNode.Key}");
     }
     
     protected override void OnNodeRemoved(TreapNode<TKey, TValue>? parent, TreapNode<TKey, TValue>? child)
     {
-        throw new NotImplementedException();
+        Console.WriteLine($"Removed one node");
     }
     
 }
