@@ -82,6 +82,7 @@ public class Treap<TKey, TValue> : BinarySearchTreeBase<TKey, TValue, TreapNode<
             node = node.Left;
         }
        RemoveNode(node);
+       Root = Merge(splittedTree1, splittedTree2);
        Count--; 
        return true;
     }
