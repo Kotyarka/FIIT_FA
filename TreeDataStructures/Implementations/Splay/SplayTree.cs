@@ -11,17 +11,79 @@ public class SplayTree<TKey, TValue> : BinarySearchTree<TKey, TValue>
     
     protected override void OnNodeAdded(BstNode<TKey, TValue> newNode)
     {
-        throw new NotImplementedException();
+        Splay(newNode);
     }
     
     protected override void OnNodeRemoved(BstNode<TKey, TValue>? parent, BstNode<TKey, TValue>? child)
     {
-        throw new NotImplementedException();
+        if (child != Root)
+        {
+            Splay(parent);
+        }
     }
     
     public override bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value)
     {
-        throw new NotImplementedException();
+        BstNode<TKey, TValue>? node = FindNode(key);
+        if (node != null)
+        {
+            value = node.Value;
+            Splay(node);
+            return true;
+        }
+        value = default;
+        return false;
+    }
+
+    public override bool ContainsKey(TKey key) { // почему это есть в тестах, а прототипа не было((
+        BstNode<TKey, TValue>? node = FindNode(key);
+        if (node != null)
+        {
+            Splay(node);
+            return true;
+        }
+        return false;
     }
     
+    protected void Splay(BstNode<TKey, TValue>? node) 
+    {
+        while (node.Parent != null)
+        {
+            if (node == node.Parent.Left)
+            {
+                if (node.Parent.Parent == null)
+                {
+                    RotateRight(node.Parent);
+                }
+                else if (node.Parent == node.Parent.Parent.Left) // tbd implement isleftchild functions
+                {
+                    RotateRight(node.Parent.Parent);
+                    RotateRight(node.Parent);
+                }
+                else
+                {
+                    RotateRight(node.Parent);
+                    RotateLeft(node.Parent);
+                }
+            }
+            else
+            {
+                if (node.Parent.Parent == null)
+                {
+                    RotateLeft(node.Parent);
+                }
+                else if (node.Parent == node.Parent.Parent.Right)
+                {
+                    RotateLeft(node.Parent.Parent);
+                    RotateLeft(node.Parent);
+                }
+                else
+                {
+                    RotateLeft(node.Parent);
+                    RotateRight(node.Parent);
+                }
+            }
+        }
+        
+    }
 }
