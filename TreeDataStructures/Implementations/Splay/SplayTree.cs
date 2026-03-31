@@ -47,8 +47,11 @@ public class SplayTree<TKey, TValue> : BinarySearchTree<TKey, TValue>
     
     protected void Splay(BstNode<TKey, TValue>? node) 
     {
+        if (node == null) return;
+
         while (node.Parent != null)
         {
+            
             if (node == node.Parent.Left)
             {
                 if (node.Parent.Parent == null)
