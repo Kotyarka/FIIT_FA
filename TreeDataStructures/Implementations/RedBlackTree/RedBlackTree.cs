@@ -87,6 +87,7 @@ public class RedBlackTree<TKey, TValue> : BinarySearchTreeBase<TKey, TValue, RbN
 
     protected override void OnNodeRemoved(RbNode<TKey, TValue>? parent, RbNode<TKey, TValue>? child)
     {
-        throw new NotImplementedException();
+        
     }
+
 }

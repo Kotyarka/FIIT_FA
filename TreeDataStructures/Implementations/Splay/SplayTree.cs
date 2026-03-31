@@ -58,7 +58,7 @@ public class SplayTree<TKey, TValue> : BinarySearchTree<TKey, TValue>
                 {
                     RotateRight(node.Parent);
                 }
-                else if (node.Parent == node.Parent.Parent.Left) // tbd implement isleftchild functions
+                else if (node.Parent == node.Parent.Parent.Left)
                 {
                     RotateRight(node.Parent.Parent);
                     RotateRight(node.Parent);

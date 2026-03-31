@@ -90,36 +90,37 @@ public abstract class BinarySearchTreeBase<TKey, TValue, TNode>(IComparer<TKey>?
         return true;
     }
 
-    protected virtual void RemoveNode(TNode? node)
+    protected virtual void RemoveNode(TNode node)
     {
-        ArgumentNullException.ThrowIfNull(node); 
-        if (node.Left == null && node.Right == null)
+        TNode? parent = node.Parent;
+        TNode? child = null;
+        if (node.Left == null)
         {
-            Transplant(node, null);
-        } else if (node.Left == null)
-        {
-           Transplant(node, node.Right);
+            child = node.Right;
+            Transplant(node, node.Right);
         } else if (node.Right == null)
         {
+            child = node.Left;
             Transplant(node, node.Left);
         } else
         {
-            TNode temp = node.Left;
-            while (temp.Right != null)
+            TNode successor = node.Right;
+            while (successor.Left != null)
             {
-                temp = temp.Right;
+                successor = successor.Left;
             }
-
-            if (temp.Parent != node)
+            if (successor.Parent != node)
             {
-                Transplant(temp, temp.Left);
-                temp.Left = node.Left;
-                temp.Left.Parent = temp;
+                Transplant(successor, successor.Right);
+                successor.Right = node.Right;
+                successor.Right.Parent = successor;
             }
-            Transplant(node, temp);
-            temp.Right = node.Right;
-            temp.Right.Parent = temp;
+            Transplant(node, successor);
+            successor.Left = node.Left;
+            successor.Left.Parent = successor;
+            child = successor;
         }
+        OnNodeRemoved(parent, child);
     }
 
 
