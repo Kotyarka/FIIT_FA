@@ -139,7 +139,7 @@ public override bool Remove(TKey key)
     else
     {
         if (nodeToRemove.Parent.Left == nodeToRemove)
-        {
+        { // tbd: i forgot that we have func 'isleftchild' or smth
             nodeToRemove.Parent.Left = mergedChildren;
         }
         else
