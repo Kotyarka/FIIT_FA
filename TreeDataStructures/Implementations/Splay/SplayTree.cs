@@ -35,49 +35,58 @@ public class SplayTree<TKey, TValue> : BinarySearchTree<TKey, TValue>
         return false;
     }
 
+    public override bool ContainsKey(TKey key) { // почему это есть в тестах, а прототипа не было((
+        BstNode<TKey, TValue>? node = FindNode(key);
+        if (node != null)
+        {
+            Splay(node);
+            return true;
+        }
+        return false;
+    }
+    
     protected void Splay(BstNode<TKey, TValue>? node) 
     {
         if (node == null) return;
 
         while (node.Parent != null)
         {
-            var parent = node.Parent;
-            var grandParent = parent.Parent; // added this two to fix warning
             
-            if (node == parent.Left)
+            if (node == node.Parent.Left)
             {
-                if (grandParent == null)
+                if (node.Parent.Parent == null)
                 {
-                    RotateRight(parent);
+                    RotateRight(node.Parent);
                 }
-                else if (parent == grandParent.Left)
+                else if (node.Parent == node.Parent.Parent.Left) // tbd implement isleftchild functions
                 {
-                    RotateRight(grandParent);
-                    RotateRight(parent);
+                    RotateRight(node.Parent.Parent);
+                    RotateRight(node.Parent);
                 }
                 else
                 {
-                    RotateRight(parent);
-                    RotateLeft(parent);
+                    RotateRight(node.Parent);
+                    RotateLeft(node.Parent);
                 }
             }
             else
             {
-                if (grandParent == null)
+                if (node.Parent.Parent == null)
                 {
-                    RotateLeft(parent);
+                    RotateLeft(node.Parent);
                 }
-                else if (parent == grandParent.Right)
+                else if (node.Parent == node.Parent.Parent.Right)
                 {
-                    RotateLeft(grandParent);
-                    RotateLeft(parent);
+                    RotateLeft(node.Parent.Parent);
+                    RotateLeft(node.Parent);
                 }
                 else
                 {
-                    RotateLeft(parent);
-                    RotateRight(parent);
+                    RotateLeft(node.Parent);
+                    RotateRight(node.Parent);
                 }
             }
         }
+        
     }
 }

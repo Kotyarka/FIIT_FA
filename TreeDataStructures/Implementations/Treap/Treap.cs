@@ -12,46 +12,46 @@ public class Treap<TKey, TValue> : BinarySearchTreeBase<TKey, TValue, TreapNode<
     /// Left: все ключи <= <paramref name="key"/>
     /// Right: все ключи > <paramref name="key"/>
     /// </summary>
-protected virtual (TreapNode<TKey, TValue>? Left, TreapNode<TKey, TValue>? Right) Split(TreapNode<TKey, TValue>? root, TKey key)
-{
-    if (root == null)
+    protected virtual (TreapNode<TKey, TValue>? Left, TreapNode<TKey, TValue>? Right) Split(TreapNode<TKey, TValue>? root, TKey key)
     {
-        return (null, null);
-    }
-    
-    if (Comparer.Compare(key, root.Key) < 0)
-    {
-        (TreapNode<TKey, TValue>? left, TreapNode<TKey, TValue>? right) = Split(root.Left, key);
-        root.Left = right;
+        if (root == null)
+        {
+            return (null, null);
+        }
         
-        if (right != null)
+        if (Comparer.Compare(key, root.Key) < 0)
         {
-            right.Parent = root;
+            (TreapNode<TKey, TValue>? left, TreapNode<TKey, TValue>? right) = Split(root.Left, key);
+            root.Left = right;
+            
+            if (right != null)
+            {
+                right.Parent = root;
+            }
+            if (left != null)
+            {
+                left.Parent = null;
+            }
+            root.Parent = null;
+            return (left, root);
         }
-        if (left != null)
+        else
         {
-            left.Parent = null;
+            (TreapNode<TKey, TValue>? left, TreapNode<TKey, TValue>? right) = Split(root.Right, key);
+            root.Right = left;
+            
+            if (left != null)
+            {
+                left.Parent = root;
+            }
+            if (right != null)
+            {
+                right.Parent = null;
+            }
+            root.Parent = null;
+            return (root, right);
         }
-        root.Parent = null;
-        return (left, root);
     }
-    else
-    {
-        (TreapNode<TKey, TValue>? left, TreapNode<TKey, TValue>? right) = Split(root.Right, key);
-        root.Right = left;
-        
-        if (left != null)
-        {
-            left.Parent = root;
-        }
-        if (right != null)
-        {
-            right.Parent = null;
-        }
-        root.Parent = null;
-        return (root, right);
-    }
-}
 
     /// <summary>
     /// Сливает два дерева в одно.
@@ -117,41 +117,41 @@ protected virtual TreapNode<TKey, TValue>? Merge(TreapNode<TKey, TValue>? left, 
         Count++;
     }
 
-public override bool Remove(TKey key)
-{
-    TreapNode<TKey, TValue>? nodeToRemove = FindNode(key);
-    if (nodeToRemove == null)
+    public override bool Remove(TKey key)
     {
-        return false;
-    }
+        TreapNode<TKey, TValue>? nodeToRemove = FindNode(key);
+        if (nodeToRemove == null)
+        {
+            return false;
+        }
 
-    TreapNode<TKey, TValue>? mergedChildren = Merge(nodeToRemove.Left, nodeToRemove.Right);
-    
-    if (mergedChildren != null)
-    {
-        mergedChildren.Parent = nodeToRemove.Parent;
-    }
-    
-    if (nodeToRemove.Parent == null)
-    {
-        Root = mergedChildren;
-    }
-    else
-    {
-        if (nodeToRemove.Parent.Left == nodeToRemove)
-        { // tbd: i forgot that we have func 'isleftchild' or smth
-            nodeToRemove.Parent.Left = mergedChildren;
+        TreapNode<TKey, TValue>? mergedChildren = Merge(nodeToRemove.Left, nodeToRemove.Right);
+        
+        if (mergedChildren != null)
+        {
+            mergedChildren.Parent = nodeToRemove.Parent;
+        }
+        
+        if (nodeToRemove.Parent == null)
+        {
+            Root = mergedChildren;
         }
         else
         {
-            nodeToRemove.Parent.Right = mergedChildren;
+            if (nodeToRemove.Parent.Left == nodeToRemove)
+            { // tbd: i forgot that we have func 'isleftchild' or smth
+                nodeToRemove.Parent.Left = mergedChildren;
+            }
+            else
+            {
+                nodeToRemove.Parent.Right = mergedChildren;
+            }
         }
+        
+        Count--;
+        OnNodeRemoved(nodeToRemove.Parent, nodeToRemove);
+        return true;
     }
-    
-    Count--;
-    OnNodeRemoved(nodeToRemove.Parent, nodeToRemove);
-    return true;
-}
 
     protected override TreapNode<TKey, TValue> CreateNode(TKey key, TValue value)
     {
