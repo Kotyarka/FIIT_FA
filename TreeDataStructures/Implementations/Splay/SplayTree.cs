@@ -35,49 +35,49 @@ public class SplayTree<TKey, TValue> : BinarySearchTree<TKey, TValue>
         return false;
     }
 
-protected void Splay(BstNode<TKey, TValue>? node) 
-{
-    if (node == null) return;
-
-    while (node.Parent != null)
+    protected void Splay(BstNode<TKey, TValue>? node) 
     {
-        var parent = node.Parent;
-        var grandParent = parent.Parent; // added this two to fix warning
-        
-        if (node == parent.Left)
+        if (node == null) return;
+
+        while (node.Parent != null)
         {
-            if (grandParent == null)
+            var parent = node.Parent;
+            var grandParent = parent.Parent; // added this two to fix warning
+            
+            if (node == parent.Left)
             {
-                RotateRight(parent);
-            }
-            else if (parent == grandParent.Left)
-            {
-                RotateRight(grandParent);
-                RotateRight(parent);
+                if (grandParent == null)
+                {
+                    RotateRight(parent);
+                }
+                else if (parent == grandParent.Left)
+                {
+                    RotateRight(grandParent);
+                    RotateRight(parent);
+                }
+                else
+                {
+                    RotateRight(parent);
+                    RotateLeft(parent);
+                }
             }
             else
             {
-                RotateRight(parent);
-                RotateLeft(parent);
-            }
-        }
-        else
-        {
-            if (grandParent == null)
-            {
-                RotateLeft(parent);
-            }
-            else if (parent == grandParent.Right)
-            {
-                RotateLeft(grandParent);
-                RotateLeft(parent);
-            }
-            else
-            {
-                RotateLeft(parent);
-                RotateRight(parent);
+                if (grandParent == null)
+                {
+                    RotateLeft(parent);
+                }
+                else if (parent == grandParent.Right)
+                {
+                    RotateLeft(grandParent);
+                    RotateLeft(parent);
+                }
+                else
+                {
+                    RotateLeft(parent);
+                    RotateRight(parent);
+                }
             }
         }
     }
-}
 }
