@@ -26,15 +26,15 @@ public class RedBlackTree<TKey, TValue> : BinarySearchTreeBase<TKey, TValue, RbN
         }
         while (t.Parent.Color == RbColor.Red)
         {
-            var parent = t.Parent;
-            var grandpa = t.Parent.Parent;
+            RbNode<TKey, TValue>  parent = t.Parent;
+            RbNode<TKey, TValue>  grandpa = t.Parent.Parent;
             if (grandpa == null)
             {
                 return;
             }// Need some style changes
             if (parent == grandpa.Left)
             {
-                var uncle = grandpa.Right;
+                RbNode<TKey, TValue>  uncle = grandpa.Right;
                 if (uncle != null && uncle.Color == RbColor.Red)
                 {
                     parent.Color = RbColor.Black;
@@ -57,7 +57,7 @@ public class RedBlackTree<TKey, TValue> : BinarySearchTreeBase<TKey, TValue, RbN
             }
             else
             {
-                var uncle = grandpa.Left;
+                RbNode<TKey, TValue>  uncle = grandpa.Left;
                 if (uncle != null && uncle.Color == RbColor.Red)
                 {                    
                     parent.Color = RbColor.Black;
