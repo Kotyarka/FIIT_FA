@@ -15,8 +15,40 @@ public sealed class BetterBigInteger : IBigInteger
     /// От массива цифр (little endian)
     public BetterBigInteger(uint[] digits, bool isNegative = false)
     {
-        throw new NotImplementedException("Implement storage logic with Small Integer Optimization");
-    }
+        if (digits == null)
+        {
+            throw new ArgumentNullException();
+        }
+
+        int NonZeroIndex = digits.Length - 1;
+        while (NonZeroIndex >= 0 && digits[NonZeroIndex] == 0)
+            NonZeroIndex--;
+
+        if (NonZeroIndex < 0) // посчитали сколько нулевых чисел в конце (начале в литл эндиан)
+        {
+            _signBit = 0;
+            _smallValue = 0;
+            _data = null;
+            return;
+        }
+
+        var normalized =  new uint[NonZeroIndex + 1];
+        Array.Copy(digits, normalized, normalized.Length);
+
+        if (normalized.Length == 1) // если слишком маленбкое
+        {
+            _smallValue = normalized[0];
+            _data = null;
+            _signBit = isNegative ? 1 : 0;
+
+            return;
+        }
+        else
+        {
+            _data = normalized;
+            _smallValue = 0;
+            _signBit = isNegative ? 1 : 0;
+        }
     
     public BetterBigInteger(IEnumerable<uint> digits, bool isNegative = false)
     {
