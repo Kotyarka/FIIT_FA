@@ -39,7 +39,7 @@ public sealed class BetterBigInteger : IBigInteger
         {
             _smallValue = normalized[0];
             _data = null;
-            _signBit = isNegative ? 1 : 0;
+            _signBit = (isNegative && normalized[0] != 0) ? 1 : 0;
 
             return;
         }
@@ -49,10 +49,10 @@ public sealed class BetterBigInteger : IBigInteger
             _smallValue = 0;
             _signBit = isNegative ? 1 : 0;
         }
-    
-    public BetterBigInteger(IEnumerable<uint> digits, bool isNegative = false)
+    }
+    public BetterBigInteger(IEnumerable<uint> digits, bool isNegative = false) 
+        : this(digits?.ToArray() ?? throw new ArgumentNullException(nameof(digits)), isNegative) // переводим ienumerable в массив и вызываем первый конструктор
     {
-        throw new NotImplementedException();
     }
     
     public BetterBigInteger(string value, int radix)
