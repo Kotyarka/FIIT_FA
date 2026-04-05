@@ -176,10 +176,65 @@ public sealed class BetterBigInteger : IBigInteger
         return _data ?? [_smallValue];
     }
     
-    public int CompareTo(IBigInteger? other) => throw new NotImplementedException();
-    public bool Equals(IBigInteger? other) => throw new NotImplementedException();
+    public int CompareTo(IBigInteger? other)
+    {
+        if (other == null) return 1;
+        if (other is not BetterBigInteger BBIOther) 
+            throw new ArgumentException($"wrong type");
+        if (IsNegative != BBIOther.IsNegative) 
+            return IsNegative ? -1 : 1;
+        
+        ReadOnlySpan<uint> ThisSpan = GetDigits();
+        ReadOnlySpan<uint> OtherSpan = BBIOther.GetDigits();
+        
+        if (ThisSpan.Length != OtherSpan.Length)
+            return IsNegative 
+                ? OtherSpan.Length.CompareTo(ThisSpan.Length) 
+                : ThisSpan.Length.CompareTo(OtherSpan.Length);
+        
+        for (int i = ThisSpan.Length - 1; i >= 0; i--)
+        {
+            if (ThisSpan[i] != OtherSpan[i])
+                return IsNegative 
+                    ? OtherSpan[i].CompareTo(ThisSpan[i])
+                    : ThisSpan[i].CompareTo(OtherSpan[i]);
+        }
+        return 0;
+    }
+    public bool Equals(IBigInteger? other)
+    {
+        return this.CompareTo(other) == 0;
+    }
     public override bool Equals(object? obj) => obj is IBigInteger other && Equals(other);
-    public override int GetHashCode() => throw new NotImplementedException();
+    public override int GetHashCode()
+    {
+        HashCode hash = new HashCode();
+        
+        hash.Add(_signBit);
+        
+        if (_data == null)
+        {
+            hash.Add(_smallValue);
+        }
+        else
+        {
+            hash.Add(_data.Length);
+            
+            int maxDigitsToHash = Math.Min(_data.Length, 16);
+            for (int i = 0; i < maxDigitsToHash; i++)
+            {
+                hash.Add(_data[i]);
+            }
+            
+            if (_data.Length > 16)
+            {
+                hash.Add(_data[_data.Length - 1]); 
+                hash.Add(_data[_data.Length - 2]); 
+            }
+        }
+        
+        return hash.ToHashCode(); // может быть коллизия, но зато не будет долгим при огромных числах
+    }
     
     
     public static BetterBigInteger operator +(BetterBigInteger a, BetterBigInteger b) => throw new NotImplementedException();
