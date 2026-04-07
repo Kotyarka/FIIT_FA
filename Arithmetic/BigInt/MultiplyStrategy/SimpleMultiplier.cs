@@ -23,23 +23,23 @@ internal class SimpleMultiplier : IMultiplier
             ulong carry = 0;
             for (int j = 0; j < lenB; j++)
             {
-                int idx = i + j;
-                ulong product = (ulong)a[i] * (ulong)b[j] + result[idx] + carry;
-                result[idx] = (uint)product;
+                int index = i + j;
+                ulong product = (ulong)a[i] * (ulong)b[j] + result[index] + carry;
+                result[index] = (uint)product;
                 carry = product >> 32;
             }
 
             if (carry != 0)
             {
-                int idx = i + lenB;
+                int index = i + lenB;
                 while (carry != 0)
                 {
-                    if (idx < result.Count)
+                    if (index < result.Count)
                     {
-                        ulong sum = (ulong)result[idx] + carry;
-                        result[idx] = (uint)sum;
+                        ulong sum = (ulong)result[index] + carry;
+                        result[index] = (uint)sum;
                         carry = sum >> 32;
-                        idx++;
+                        index++;
                     }
                     else
                     {
