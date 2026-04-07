@@ -242,7 +242,6 @@ public sealed class BetterBigInteger : IBigInteger
         if (a == null) throw new ArgumentNullException(nameof(a));
         if (b == null) throw new ArgumentNullException(nameof(b));
         
-        // Same sign: add magnitudes
         if (a.IsNegative == b.IsNegative)
         {
             var result = AddMagnitudes(a.GetDigits(), b.GetDigits());
@@ -343,7 +342,6 @@ public sealed class BetterBigInteger : IBigInteger
 
     private static uint[] SubtractMagnitudes(ReadOnlySpan<uint> a, ReadOnlySpan<uint> b)
     {
-        // Assumes a >= b
         var result = new uint[a.Length];
         ulong borrow = 0;
         
@@ -393,90 +391,127 @@ public sealed class BetterBigInteger : IBigInteger
         return digits.Length == 1 && digits[0] == 0;
     }
 
-    private static uint[] DivideMagnitudes(ReadOnlySpan<uint> dividend, ReadOnlySpan<uint> divisorspan, out uint[] remainder)
+private static uint[] DivideMagnitudes(ReadOnlySpan<uint> dividend, ReadOnlySpan<uint> divisorSpan, out uint[] remainder)
+{
+    var divisor = divisorSpan.ToArray();
+    
+    if (CompareMagnitudes(dividend, divisor) < 0)
     {
-        var divisor = divisorspan.ToArray();
-        if (CompareMagnitudes(dividend, divisor) < 0)
+        remainder = dividend.ToArray();
+        return new uint[] { 0 };
+    }
+    
+    int n = divisor.Length;
+    int m = dividend.Length - n;
+    
+    var quotient = new uint[m + 1];
+    var remainderArray = new uint[dividend.Length];
+    dividend.CopyTo(remainderArray);
+    
+    uint d = (uint)(0x100000000UL / (divisor[n - 1] + 1));
+    var normalizedDividend = MultiplyGorner(remainderArray, (int)d);
+    var normalizedDivisor = MultiplyGorner(divisor, (int)d);
+    
+    if (normalizedDividend.Length <= n + m)
+    {
+        var temp = new uint[m + n + 1];
+        normalizedDividend.CopyTo(temp, 0);
+        normalizedDividend = temp;
+    }
+    
+    for (int j = m; j >= 0; j--)
+    {
+        ulong dividendPart = ((ulong)normalizedDividend[j + n] << 32) + normalizedDividend[j + n - 1];
+        ulong qhat = dividendPart / normalizedDivisor[n - 1];
+        ulong rhat = dividendPart % normalizedDivisor[n - 1];
+        
+        if (qhat > 0xFFFFFFFF)
+            qhat = 0xFFFFFFFF;
+        
+
+        while (n > 1 && qhat * normalizedDivisor[n - 2] > ((rhat << 32) + normalizedDividend[j + n - 2]))
         {
-            remainder = dividend.ToArray();
-            return new uint[] { 0 };
+            qhat--;
+            rhat += normalizedDivisor[n - 1];
+            if (rhat >= 0x100000000UL)
+                break;
         }
         
-        int n = divisor.Length;
-        int m = dividend.Length - n;
+        ulong borrow = 0;
+        ulong carry = 0;
         
-        var quotient = new uint[m + 1];
-        remainder = new uint[n];
-        dividend.CopyTo(remainder);
-        
-        uint d = (uint)(0x100000000UL / (divisor[n - 1] + 1));
-        var normalizedDividend = MultiplyGorner(remainder, (int)d);
-        var normalizedDivisor = MultiplyGorner(divisor, (int)d);
-        
-        if (normalizedDividend.Length == n)
+        for (int i = 0; i < n; i++)
         {
-            var temp = new uint[n + 1];
-            normalizedDividend.CopyTo(temp, 1);
-            normalizedDividend = temp;
-        }
-        
-        for (int j = m; j >= 0; j--)
-        {
-            ulong qhat = ((ulong)normalizedDividend[j + n] << 32) + normalizedDividend[j + n - 1];
-            qhat /= normalizedDivisor[n - 1];
+            ulong product = qhat * normalizedDivisor[i] + carry;
+            carry = product >> 32;
             
-            if (qhat > 0xFFFFFFFF)
-                qhat = 0xFFFFFFFF;
+            long diff = (long)normalizedDividend[j + i] - (long)(product & 0xFFFFFFFF) - (long)borrow;
             
-            ulong rhat = ((ulong)normalizedDividend[j + n] << 32) + normalizedDividend[j + n - 1] - qhat * normalizedDivisor[n - 1];
-            
-            while (qhat * normalizedDivisor[n - 2] > ((rhat << 32) + normalizedDividend[j + n - 2]))
+            if (diff < 0)
             {
-                qhat--;
-                rhat += normalizedDivisor[n - 1];
-                if (rhat > 0xFFFFFFFF)
-                    break;
+                diff += 0x100000000L;
+                borrow = 1;
+            }
+            else
+            {
+                borrow = 0;
             }
             
-            ulong borrow = 0;
+            normalizedDividend[j + i] = (uint)diff;
+        }
+        
+        long finalDiff = (long)normalizedDividend[j + n] - (long)borrow;
+        normalizedDividend[j + n] = (uint)finalDiff;
+        
+        quotient[j] = (uint)qhat;
+        
+        if (finalDiff < 0)
+        {
+            quotient[j]--;
+            carry = 0;
+            
             for (int i = 0; i < n; i++)
             {
-                ulong product = qhat * normalizedDivisor[i];
-                ulong diff = normalizedDividend[j + i] - borrow - (product & 0xFFFFFFFF);
-                normalizedDividend[j + i] = (uint)diff;
-                borrow = (product >> 32) + ((diff >> 32) & 1);
+                ulong sum = (ulong)normalizedDividend[j + i] + normalizedDivisor[i] + carry;
+                normalizedDividend[j + i] = (uint)sum;
+                carry = sum >> 32;
             }
             
-            ulong finalDiff = normalizedDividend[j + n] - borrow;
-            normalizedDividend[j + n] = (uint)finalDiff;
-            
-            quotient[j] = (uint)qhat;
-            
-            if (finalDiff >> 32 > 0)
-            {
-                quotient[j]--;
-                borrow = 0;
-                for (int i = 0; i < n; i++)
-                {
-                    ulong sum = (ulong)normalizedDividend[j + i] + normalizedDivisor[i] + borrow;
-                    normalizedDividend[j + i] = (uint)sum;
-                    borrow = sum >> 32;
-                }
-                normalizedDividend[j + n] += (uint)borrow;
-            }
+            normalizedDividend[j + n] += (uint)carry;
         }
-        
-        int qi = quotient.Length - 1;
-        while (qi > 0 && quotient[qi] == 0)
-            qi--;
-        
-        if (qi + 1 < quotient.Length)
-            Array.Resize(ref quotient, qi + 1);
-        
-        remainder = DivideByDigit(normalizedDividend.Take(n).ToArray(), d);
-        
-        return quotient;
     }
+    
+    int qi = quotient.Length - 1;
+    while (qi > 0 && quotient[qi] == 0)
+        qi--;
+    
+    if (qi + 1 < quotient.Length)
+        Array.Resize(ref quotient, qi + 1);
+    
+    int lastNonZero = normalizedDividend.Length - 1;
+    while (lastNonZero >= 0 && normalizedDividend[lastNonZero] == 0)
+        lastNonZero--;
+    
+    if (lastNonZero < 0)
+    {
+        remainder = new uint[] { 0 };
+    }
+    else
+    {
+        var remainderNormalized = new uint[lastNonZero + 1];
+        Array.Copy(normalizedDividend, 0, remainderNormalized, 0, lastNonZero + 1);
+        remainder = DivideByDigit(remainderNormalized, d);
+        
+        int ri = remainder.Length - 1;
+        while (ri > 0 && remainder[ri] == 0)
+            ri--;
+        
+        if (ri + 1 < remainder.Length)
+            Array.Resize(ref remainder, ri + 1);
+    }
+    
+    return quotient;
+}
 
     private static uint[] DivideByDigit(uint[] digits, uint divisor)
     {
