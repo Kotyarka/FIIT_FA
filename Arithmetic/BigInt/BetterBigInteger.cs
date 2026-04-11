@@ -565,7 +565,7 @@ private static uint[] DivideMagnitudes(ReadOnlySpan<uint> dividend, ReadOnlySpan
         int length = magnitude.Length;
         uint[] result = new uint[length];
         ulong carry = 1;
-        for (int i = 0; i < length, i++)
+        for (int i = 0; i < length; i++)
         {
             result[i] = ~magnitude[i];
             ulong res = result[i] + carry;
