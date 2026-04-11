@@ -542,8 +542,38 @@ private static uint[] DivideMagnitudes(ReadOnlySpan<uint> dividend, ReadOnlySpan
     }
     
     public static BetterBigInteger operator *(BetterBigInteger a, BetterBigInteger b)
-       => throw new NotImplementedException("Умножение делегируется стратегии, выбирать необходимо в зависимости от размеров чисел");
-    
+    {
+        var aDigits = a.GetDigits();
+        var bDigits = b.GetDigits();
+        if ((aDigits.Length + bDigits.Length) < 20)
+        {
+            SimpleMultiplier mult = new();
+            return mult.Multiply(a, b);
+        } else if ((aDigits.Length + bDigits.Length) <= 40)
+        {
+            KaratsubaMultiplier mult = new();
+            return mult.Multiply(a, b);
+        } else
+        {
+            FftMultiplier mult = new();
+            return mult.Multiply(a, b);
+        }
+    }
+    private uint[] ToTwosComplement(ReadOnlySpan<uint> a, bool isNegative)
+    {
+        uint[] magnitude = a.ToArray();
+        int length = magnitude.Length;
+        uint[] result = new uint[length];
+        ulong carry = 1;
+        for (int i = 0; i < length, i++)
+        {
+            result[i] = ~magnitude[i];
+            ulong res = result[i] + carry;
+            result[i] = (uint)res;
+            carry = res >> 32;
+        }
+        return result;
+    }
     public static BetterBigInteger operator ~(BetterBigInteger a) => throw new NotImplementedException();
     public static BetterBigInteger operator &(BetterBigInteger a, BetterBigInteger b) => throw new NotImplementedException();
     public static BetterBigInteger operator |(BetterBigInteger a, BetterBigInteger b) => throw new NotImplementedException();
@@ -559,6 +589,48 @@ private static uint[] DivideMagnitudes(ReadOnlySpan<uint> dividend, ReadOnlySpan
     public static bool operator >=(BetterBigInteger a, BetterBigInteger b) => a.CompareTo(b) >= 0;
     
     public override string ToString() => ToString(10);
-    public string ToString(int radix) => throw new NotImplementedException();
+    public string ToString(int radix)
+{
+    if (radix < 2 || radix > 36)
+        throw new ArgumentOutOfRangeException(nameof(radix), "Radix must be between 2 and 36");
+    
+    var digits = GetDigits();
+    
+    if (digits.Length == 1 && digits[0] == 0)
+        return "0";
+    
+    var result = new List<char>();
+    var workingCopy = digits.ToArray();
+    
+    while (!(workingCopy.Length == 1 && workingCopy[0] == 0))
+    {
+        var quotient = DivideByDigit(workingCopy, (uint)radix);
+        
+        ulong remainder = 0;
+        for (int i = workingCopy.Length - 1; i >= 0; i--)
+        {
+            ulong value = (remainder << 32) | workingCopy[i];
+            remainder = value % (uint)radix;
+        }
+        
+        result.Add(DigitToChar((int)remainder));
+        workingCopy = quotient;
+    }
+    
+    if (result.Count == 0)
+        result.Add('0');
+    
+    result.Reverse();
+    
+    return (IsNegative ? "-" : "") + new string(result.ToArray());
+}
+
+private static char DigitToChar(int digit)
+{
+    if (digit < 10)
+        return (char)('0' + digit);
+    else
+        return (char)('A' + digit - 10);
+}
     
 }
