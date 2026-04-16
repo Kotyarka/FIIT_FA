@@ -61,7 +61,7 @@ public sealed class BetterBigInteger : IBigInteger
 
     public BetterBigInteger(string value, int radix)
     {
-        if (value == null || radix == null)
+        if (value == null)
         {
             throw new ArgumentNullException();
         }
@@ -250,8 +250,6 @@ public sealed class BetterBigInteger : IBigInteger
 
     public static BetterBigInteger operator +(BetterBigInteger a, BetterBigInteger b)
     {
-        if (a == null) throw new ArgumentNullException(nameof(a));
-        if (b == null) throw new ArgumentNullException(nameof(b));
 
         if (a.IsNegative == b.IsNegative)
         {
@@ -275,8 +273,7 @@ public sealed class BetterBigInteger : IBigInteger
 
     public static BetterBigInteger operator -(BetterBigInteger a, BetterBigInteger b)
     {
-        if (a == null) throw new ArgumentNullException(nameof(a));
-        if (b == null) throw new ArgumentNullException(nameof(b));
+
 
         var negatedB = new BetterBigInteger(b.GetDigits().ToArray(), !b.IsNegative);
         return a + negatedB;
@@ -284,7 +281,6 @@ public sealed class BetterBigInteger : IBigInteger
 
     public static BetterBigInteger operator -(BetterBigInteger a)
     {
-        if (a == null) throw new ArgumentNullException(nameof(a));
 
         var digits = a.GetDigits().ToArray();
         bool isNegative = !a.IsNegative && !IsZero(digits);
@@ -293,8 +289,6 @@ public sealed class BetterBigInteger : IBigInteger
 
     public static BetterBigInteger operator /(BetterBigInteger a, BetterBigInteger b)
     {
-        if (a == null) throw new ArgumentNullException(nameof(a));
-        if (b == null) throw new ArgumentNullException(nameof(b));
 
         var bDigits = b.GetDigits();
         if (IsZero(bDigits))
@@ -311,8 +305,6 @@ public sealed class BetterBigInteger : IBigInteger
 
     public static BetterBigInteger operator %(BetterBigInteger a, BetterBigInteger b)
     {
-        if (a == null) throw new ArgumentNullException(nameof(a));
-        if (b == null) throw new ArgumentNullException(nameof(b));
 
         var bDigits = b.GetDigits();
         if (IsZero(bDigits))
@@ -604,7 +596,7 @@ public sealed class BetterBigInteger : IBigInteger
         }
     }
 
-    private static void Normalize(ref uint[] magnitude)
+    public static void Normalize(ref uint[] magnitude)
     {
         int lastNotZeroIndex = magnitude.Length - 1;
         while (lastNotZeroIndex > 0 && magnitude[lastNotZeroIndex] == 0)
