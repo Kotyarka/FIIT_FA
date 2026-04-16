@@ -1,4 +1,5 @@
-﻿using Arithmetic.BigInt.Interfaces;
+﻿using System.ComponentModel;
+using Arithmetic.BigInt.Interfaces;
 using Arithmetic.BigInt.MultiplyStrategy;
 
 namespace Arithmetic.BigInt;
@@ -188,7 +189,7 @@ public sealed class BetterBigInteger : IBigInteger
     {
         if (other == null) return 1;
         if (other is not BetterBigInteger bbiOther)
-            throw new ArgumentException($"wrong type");
+            throw new ArgumentException("wrong type");
 
         if (IsNegative != bbiOther.IsNegative)
             return IsNegative ? -1 : 1;
@@ -231,21 +232,15 @@ public sealed class BetterBigInteger : IBigInteger
         else
         {
             hash.Add(_data.Length);
-            int maxDigitsToHash = Math.Min(_data.Length, 16);
 
-            for (int i = 0; i < maxDigitsToHash; i++)
+            for (int i = 0; i < _data.Length; i++)
             {
                 hash.Add(_data[i]);
             }
 
-            if (_data.Length > 16)
-            {
-                hash.Add(_data[_data.Length - 1]);
-                hash.Add(_data[_data.Length - 2]);
-            }
         }
 
-        return hash.ToHashCode(); // может быть коллизия, но зато не будет долгим при огромных числах
+        return hash.ToHashCode(); 
     }
 
     public static BetterBigInteger operator +(BetterBigInteger a, BetterBigInteger b)
@@ -408,12 +403,6 @@ public sealed class BetterBigInteger : IBigInteger
 
         return DivideLongDivision(dividend, divisorSpan, out remainder);
     }
-
-/* I call it Varenik's algorithm
-                По сути это простое деление столбиком, но вместо умных прикидок Кнута
-                здесь используется поиск подходящей цифры в частное бинарным поиском.
-                Конечно, это менее оптимизированно, зато достаточно просто в реализации.
-                                                                                            */
     private static uint[] DivideLongDivision(ReadOnlySpan<uint> dividend, ReadOnlySpan<uint> divisor, out uint[] remainder)
     {
         var dividendBI = new BetterBigInteger(dividend.ToArray(), false);
@@ -610,6 +599,26 @@ public sealed class BetterBigInteger : IBigInteger
         }
     }
 
+    private static BetterBigInteger BitwiseOperation(BetterBigInteger a, BetterBigInteger b, Func<uint, uint, uint> op)
+    {
+        var aDigits = a.GetDigits();
+        var bDigits = b.GetDigits();
+        int maxLength = Math.Max(aDigits.Length, bDigits.Length) + 1;
+
+        var aTwosComplement = ToTwosComplement(aDigits, a.IsNegative, maxLength);
+        var bTwosComplement = ToTwosComplement(bDigits, b.IsNegative, maxLength);
+
+        uint[] result = new uint[maxLength];
+        for (int i = 0; i < maxLength; i++)
+        {
+            result[i] = op(aTwosComplement[i], bTwosComplement[i]);
+        }
+
+        (var mag, bool sign) = FromTwosComplement(result);
+        Normalize(ref mag);
+        return new BetterBigInteger(mag, sign);
+    }
+    
     public static BetterBigInteger operator ~(BetterBigInteger a)
     {
         var aDigits = a.GetDigits();
@@ -626,62 +635,18 @@ public sealed class BetterBigInteger : IBigInteger
 
     public static BetterBigInteger operator &(BetterBigInteger a, BetterBigInteger b)
     {
-        var aDigits = a.GetDigits();
-        var bDigits = b.GetDigits();
-        int maxLength = Math.Max(aDigits.Length, bDigits.Length) + 1;
-
-        var aTwosComplement = ToTwosComplement(aDigits, a.IsNegative, maxLength);
-        var bTwosComplement = ToTwosComplement(bDigits, b.IsNegative, maxLength);
-
-        uint[] result = new uint[maxLength];
-        for (int i = 0; i < maxLength; i++)
-        {
-            result[i] = aTwosComplement[i] & bTwosComplement[i];
-        }
-
-        (var mag, bool sign) = FromTwosComplement(result);
-        Normalize(ref mag);
-        return new BetterBigInteger(mag, sign);
+        return BitwiseOperation(a, b, (x, y) => x & y);
     }
 
     public static BetterBigInteger operator |(BetterBigInteger a, BetterBigInteger b)
     {
-        var aDigits = a.GetDigits();
-        var bDigits = b.GetDigits();
-        int maxLength = Math.Max(aDigits.Length, bDigits.Length) + 1;
-
-        var aTwosComplement = ToTwosComplement(aDigits, a.IsNegative, maxLength);
-        var bTwosComplement = ToTwosComplement(bDigits, b.IsNegative, maxLength);
-
-        uint[] result = new uint[maxLength];
-        for (int i = 0; i < maxLength; i++)
-        {
-            result[i] = aTwosComplement[i] | bTwosComplement[i];
-        }
-
-        (var mag, bool sign) = FromTwosComplement(result);
-        Normalize(ref mag);
-        return new BetterBigInteger(mag, sign);
+        return BitwiseOperation(a, b, (x, y) => x | y);
     }
+    
 
     public static BetterBigInteger operator ^(BetterBigInteger a, BetterBigInteger b)
     {
-        var aDigits = a.GetDigits();
-        var bDigits = b.GetDigits();
-        int maxLength = Math.Max(aDigits.Length, bDigits.Length) + 1;
-
-        var aTwosComplement = ToTwosComplement(aDigits, a.IsNegative, maxLength);
-        var bTwosComplement = ToTwosComplement(bDigits, b.IsNegative, maxLength);
-
-        uint[] result = new uint[maxLength];
-        for (int i = 0; i < maxLength; i++)
-        {
-            result[i] = aTwosComplement[i] ^ bTwosComplement[i];
-        }
-
-        (var mag, bool sign) = FromTwosComplement(result);
-        Normalize(ref mag);
-        return new BetterBigInteger(mag, sign);
+        return BitwiseOperation(a, b, (x, y) => x ^ y);
     }
 
     public static BetterBigInteger operator <<(BetterBigInteger a, int shift)
