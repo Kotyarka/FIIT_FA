@@ -9,7 +9,7 @@ internal class SimpleMultiplier : IMultiplier
     {
         if (a.Length == 0 || b.Length == 0)
         {
-            return new uint[] { 0 };
+            return [0];
         }
         int lenA = a.Length;
         int lenB = b.Length;
