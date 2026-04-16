@@ -430,11 +430,11 @@ public sealed class BetterBigInteger : IBigInteger
 
         var quotientDigits = new List<uint>();
         var currentDividend = new BetterBigInteger(new uint[] { 0 }, false);
-
+        var multiplier = new BetterBigInteger(new uint[] {10}, false);
         for (int i = 0; i < dividendStr.Length; i++)
         {
             int digit = dividendStr[i] - '0';
-            currentDividend = currentDividend * new BetterBigInteger(new uint[] { 10 }, false) + new BetterBigInteger(new uint[] { (uint)digit }, false);
+            currentDividend = currentDividend * multiplier + new BetterBigInteger(new uint[] { (uint)digit }, false);
 
             if (currentDividend < divisorBI)
             {
